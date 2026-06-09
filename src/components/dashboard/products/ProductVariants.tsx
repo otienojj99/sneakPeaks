@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 import type { ProductVariation } from "../../../types/product.types";
 import Button from "../../common/Button";
 import Input from "../../common/Input";
 import ConfirmDialog from "../../common/ConfirmDialog";
+import { useProductVariations } from "../../../hooks/products/useProductVariations";
 
 interface ProductVariationsSectionProps {
   productId?: number; // undefined for new products (variations managed in-form)
@@ -24,6 +26,7 @@ const emptyVariation: Omit<ProductVariation, "id"> = {
   size: "",
   stock: 0,
   price_adjustment: 0,
+  final_price: 0,
   price: null,
   image_id: null,
   is_active: true,
@@ -45,6 +48,24 @@ const ProductVariationsSection: React.FC<ProductVariationsSectionProps> = ({
   });
   const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { fetchVariations, deleteVariation } = useProductVariations();
+
+  useEffect(() => {
+    if (productId) {
+      fetchVariations(productId);
+    }
+  }, [productId]);
+
+  useEffect(() => {
+    if (Array.isArray(variations)) {
+      setLocalVariations(variations);
+    } else {
+      console.error(
+        'ProductVariationsSection: "variations" prop is missing or not an array.',
+      );
+    }
+  }, [variations]);
 
   useEffect(() => {
     if (Array.isArray(variations)) {
@@ -78,6 +99,7 @@ const ProductVariationsSection: React.FC<ProductVariationsSectionProps> = ({
         size: v.size,
         stock: v.stock,
         price_adjustment: v.price_adjustment,
+        final_price: v.final_price,
         price: v.price,
         image_id: v.image_id,
         is_active: v.is_active,
@@ -106,37 +128,60 @@ const ProductVariationsSection: React.FC<ProductVariationsSectionProps> = ({
     return Object.keys(errs).length === 0;
   };
 
-  const saveVariation = () => {
+  const saveVariation = async () => {
     if (!validateVariation()) return;
 
-    if (formState.editIndex !== null) {
-      const updated = [...localVariations];
-      updated[formState.editIndex] = {
-        ...updated[formState.editIndex],
-        ...formState.data,
-      };
-      setLocalVariations(updated);
-      onVariationsChange(updated);
-    } else {
-      const added = [
-        ...localVariations,
-        {
-          ...formState.data,
-          product_item_id: productId ?? formState.data.product_item_id,
-        },
-      ];
-      setLocalVariations(added);
-      onVariationsChange(added);
+    if (!productId) {
+      // new product not yet saved
+      // just update the local state and parent form
+      return;
     }
-    closeForm();
+    try {
+      if (formState.editIndex !== null) {
+        const updated = [...localVariations];
+        updated[formState.editIndex] = {
+          ...updated[formState.editIndex],
+          ...formState.data,
+        };
+        setLocalVariations(updated);
+        onVariationsChange(updated);
+      } else {
+        const added = [
+          ...localVariations,
+          {
+            ...formState.data,
+            product_item_id: productId ?? formState.data.product_item_id,
+          },
+        ];
+        setLocalVariations(added);
+        onVariationsChange(added);
+      }
+      closeForm();
+    } catch (error) {
+      console.error("Error saving variation:", error);
+    }
   };
 
-  const confirmDelete = () => {
-    if (deleteIndex !== null) {
-      const updated = localVariations.filter((_, i) => i !== deleteIndex);
-      setLocalVariations(updated);
-      onVariationsChange(updated);
+  const confirmDelete = async () => {
+    if (deleteIndex === null || !productId) return;
+
+    const variationToDelete = localVariations[deleteIndex];
+    setIsDeleting(true);
+
+    try {
+      await deleteVariation(productId, variationToDelete.id!);
+      await fetchVariations(productId);
       setDeleteIndex(null);
+      toast.success(
+        `Variation "${variationToDelete.sku}" deleted successfully`,
+      );
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to delete variation";
+      console.error("Error deleting variation:", error);
+      toast.error(errorMessage);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -194,6 +239,12 @@ const ProductVariationsSection: React.FC<ProductVariationsSectionProps> = ({
                 <th className="px-4 py-2 text-right font-medium text-gray-600">
                   Final Price
                 </th>
+                {/* // Image selection, of the image with the color in the attbutes
+                that matches the sneaker, eg red sneakers get the image with red
+                color in the attributes */}
+                <th className="px-4 py-2 text-right font-medium text-gray-600">
+                  Image
+                </th>
                 <th className="px-4 py-2 text-right font-medium text-gray-600">
                   Actions
                 </th>
@@ -201,7 +252,7 @@ const ProductVariationsSection: React.FC<ProductVariationsSectionProps> = ({
             </thead>
             <tbody className="divide-y divide-gray-100">
               {localVariations.map((v, idx) => {
-                const finalPrice = sellingPrice + v.price_adjustment;
+                const finalPrice = v.final_price;
                 const lowStock = v.stock <= 2;
                 const outOfStock = v.stock <= 0;
 
@@ -235,24 +286,42 @@ const ProductVariationsSection: React.FC<ProductVariationsSectionProps> = ({
                       </span>
                     </td>
                     <td className="px-4 py-2 text-right text-gray-600">
-                      {v.price_adjustment !== 0 && (
-                        <span
-                          className={
-                            v.price_adjustment > 0
-                              ? "text-green-600"
-                              : "text-red-600"
-                          }
-                        >
-                          {v.price_adjustment > 0 ? "+" : ""}
-                          {v.price_adjustment.toLocaleString()}
-                        </span>
-                      )}
-                      {v.price_adjustment === 0 && (
+                      {v.price_adjustment != null &&
+                        v.price_adjustment !== 0 && (
+                          <span
+                            className={
+                              v.price_adjustment > 0
+                                ? "text-green-600"
+                                : "text-red-600"
+                            }
+                          >
+                            {v.price_adjustment > 0 ? "+" : ""}
+                            {v.price_adjustment.toLocaleString()}
+                          </span>
+                        )}
+                      {(v.price_adjustment == null ||
+                        v.price_adjustment === 0) && (
                         <span className="text-gray-400">—</span>
                       )}
                     </td>
                     <td className="px-4 py-2 text-right font-medium text-gray-900">
-                      KES {finalPrice.toLocaleString()}
+                      KES{" "}
+                      {finalPrice != null ? finalPrice.toLocaleString() : "—"}
+                    </td>
+
+                    {/* // TODO: show the image with the color in the attributes that matches the sneaker, eg red sneakers get the image with red color in the attributes
+                     */}
+
+                    <td>
+                      {v.image_id ? (
+                        <img
+                          src={`/images/${v.image_id}`}
+                          alt={v.sku}
+                          className="w-16 h-16 object-cover rounded"
+                        />
+                      ) : (
+                        <span className="text-gray-400">No Image</span>
+                      )}
                     </td>
                     <td className="px-4 py-2 text-right">
                       <div className="flex justify-end gap-2">
@@ -354,6 +423,31 @@ const ProductVariationsSection: React.FC<ProductVariationsSectionProps> = ({
               }
               description={`Final: KES ${(sellingPrice + formState.data.price_adjustment).toLocaleString()}`}
             />
+
+            {/* image selection, of the image with the color in the attbutes that matches the sneaker, eg red sneakers get the image with red color in the attributes */}
+            <div className="col-span-2 md:col-span-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Image
+              </label>
+
+              {/* should be a select from a pop up that one can select the image with the color in the attributes that matches the sneaker, eg red sneakers get the image with red color in the attributes, but if the image is not availabe, then there should and upload filed for the image with the same color to be uploaded and selected */}
+              <Input
+                // type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = (e.target as HTMLInputElement).files?.[0];
+                  if (file) {
+                    setFormState((s) => ({
+                      ...s,
+                      data: {
+                        ...s.data,
+                        image: file,
+                      },
+                    }));
+                  }
+                }}
+              />
+            </div>
           </div>
           <div className="flex justify-end gap-3">
             <Button

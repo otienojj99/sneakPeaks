@@ -7,6 +7,7 @@ import ProductImageCarousel from "../../components/common/ProductImageCarousel";
 import ProductRating from "../../components/common/ProductRating";
 import ProductVariantDisplay from "../../components/common/ProductVariantDisplay";
 import { getAllProductImages } from "../../utils/productImages";
+import { useProductVariations } from "../../hooks/products/useProductVariations";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -15,13 +16,14 @@ const ProductDetail = () => {
 
   const { selectedProduct, fetchProduct, isLoading } = useProducts1();
   const [product, setProduct] = useState<any>(null);
+
   console.log("Product:", product);
   console.log("product.variants:", product?.variants);
   console.log("product.variations:", product?.variations);
   const [selectedVariant, setSelectedVariant] = useState<{
     id: string | number;
   } | null>(null);
-
+  const { variations, fetchVariations } = useProductVariations();
   useEffect(() => {
     const loadProduct = async () => {
       const result = await fetchProduct(productId);
@@ -38,6 +40,12 @@ const ProductDetail = () => {
       loadProduct();
     }
   }, [productId, fetchProduct, navigate]);
+
+  useEffect(() => {
+    if (product?.id) {
+      fetchVariations(product.id);
+    }
+  }, [product?.id]);
 
   if (isLoading) {
     return (
@@ -67,6 +75,23 @@ const ProductDetail = () => {
       day: "numeric",
     });
   };
+
+  const variants = Array.isArray(variations)
+    ? variations.map((v) => ({
+        id: String(v.id),
+        color: v.name || "Variant",
+        colorCode: "#cccccc",
+        size: v.attributes?.size || v.size || "—",
+        price_adjustment: Number(v.price_adjustment || 0),
+        final_price: Number(v.final_price || 0),
+        inStock: (v.stock ?? 0) > 0,
+        imageUrl: v.image_id ? [`/images/${v.image_id}`] : [],
+      }))
+    : [];
+
+  console.log("VARIANTS", variants);
+  console.log("Product JSON Variations", product?.variations);
+  console.log("Database Variations", variations);
 
   const StockStatus = ({ stock }: { stock: number }) => {
     if (stock <= 0)
@@ -195,11 +220,11 @@ const ProductDetail = () => {
 
                 {/* Variants display (color, size, price, stock status) with a carousel if more than 3 variants */}
                 <ProductVariantDisplay
-                  variants={
-                    Array.isArray(product?.variations) ? product.variations : []
-                  }
+                  variants={variants}
                   selectedVariantId={selectedVariant?.id?.toString() || ""}
                   onSelect={setSelectedVariant}
+
+                  // console log the variants to debug
                 />
               </div>
             </div>

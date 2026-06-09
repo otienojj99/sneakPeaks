@@ -127,8 +127,10 @@ export interface ProductVariation {
   sku: string;
   name: string;
   size: string;               // extracted from attributes
-  color?: string;             // optional, if you need it
+  color?: string;  
+  attributes?: ProductAttributes;  // optional, if you need it
   price_adjustment: number;
+  final_price: number;       // calculated as base price + adjustment
   price: number | null;
   stock: number;
   image_id: number | null;

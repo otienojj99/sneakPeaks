@@ -38,19 +38,33 @@ export function useProductVariations(): UseProductVariationsReturn {
 
   const addVariation = useCallback(
     async (productId: number, data: Omit<ProductVariation, 'id'>) => {
-      console.log(`Creating variation for product ID: ${productId}`, data);
-      const res = await productService.createVariation(productId, data);
-      if (res.success) setVariations((prev) => [...prev, res.data]);
+      try {
+        console.log(`Creating variation for product ID: ${productId}`, data);
+        const res = await productService.createVariation(productId, data);
+        if (res.success) setVariations((prev) => [...prev, res.data]);
+        setError(null);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to add variation';
+        setError(errorMessage);
+        throw err;
+      }
     },
     [],
   );
 
   const updateVariation = useCallback(
     async (productId: number, variationId: number, data: Partial<ProductVariation>) => {
-      console.log(`Updating variation for product ID: ${productId}`, { variationId, data });
-      const res = await productService.updateVariation(productId, variationId, data);
-      if (res.success) {
-        setVariations((prev) => prev.map((v) => (v.id === variationId ? res.data : v)));
+      try {
+        console.log(`Updating variation for product ID: ${productId}`, { variationId, data });
+        const res = await productService.updateVariation(productId, variationId, data);
+        if (res.success) {
+          setVariations((prev) => prev.map((v) => (v.id === variationId ? res.data : v)));
+        }
+        setError(null);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to update variation';
+        setError(errorMessage);
+        throw err;
       }
     },
     [],
@@ -58,8 +72,15 @@ export function useProductVariations(): UseProductVariationsReturn {
 
   const deleteVariation = useCallback(
     async (productId: number, variationId: number) => {
-      await productService.deleteVariation(productId, variationId);
-      setVariations((prev) => prev.filter((v) => v.id !== variationId));
+      try {
+        await productService.deleteVariation(productId, variationId);
+        setVariations((prev) => prev.filter((v) => v.id !== variationId));
+        setError(null);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to delete variation';
+        setError(errorMessage);
+        throw err; // Re-throw so the caller can handle it
+      }
     },
     [],
   );

@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { inventoryCountService } from '../../api/services/inventoryCountService';
 import { inventoryCountItemService } from '../../api/services/inventoryCountItemService';
+import { inventoryService } from '../../api/services/inventoryService';
 import toast from 'react-hot-toast';
 import type { InventoryCount, InventoryCountItem, InventoryCountItemCreateData, InventoryCountItemUpdateData } from '../../types/inventory.types';
 
@@ -105,11 +106,40 @@ export const useInventoryCount = (countId?: number) => {
 
   const adjustItem = async (itemId: number) => {
     try {
-      // The backend uses the counted quantity already stored, so we pass 0 or omit
+      // Find the item being adjusted to get the product and difference
+      const item = items.find(i => i.id === itemId);
+      if (!item) {
+        toast.error('Item not found');
+        return;
+      }
+
+      // Calculate the adjustment needed (difference between counted and system)
+      const adjustment = item.difference;
+      const productId = item.product_item_id;
+
+      // Step 1: Update the product stock with the difference
+      if (adjustment !== 0 && productId) {
+        await inventoryService.updateStock({
+          product_id: productId,
+          quantity: adjustment,
+          type: 'adjustment',
+          notes: `Inventory count adjustment from physical count (System: ${item.system_quantity}, Counted: ${item.counted_quantity})`,
+        });
+      }
+
+      // Step 2: Mark the count item as adjusted
       const response = await inventoryCountItemService.adjustCount(itemId, 0);
       setItems(prev => prev.map(i => i.id === itemId ? response.data : i));
-      toast.success('Stock adjusted');
-    } catch (err) { toast.error('Adjustment failed'); }
+      
+      if (adjustment !== 0) {
+        toast.success(`Stock adjusted by ${adjustment > 0 ? '+' : ''}${adjustment} units`);
+      } else {
+        toast.success('Stock adjusted (no change needed)');
+      }
+    } catch (err) { 
+      console.error('Adjustment failed:', err);
+      toast.error('Adjustment failed'); 
+    }
   };
 
   return {
