@@ -161,10 +161,21 @@ export const productService = {
     return response.data;
   },
 
-  deleteVariation: async (productId: number, variationId: number): Promise<ApiResponse<null>> => {
-    console.log(`Deleting variation for product ID: ${productId}`);
-    const response = await API.delete(productVariationUrl(productId, variationId));
-    console.log('Raw API response for deleteVariation 🔥:', response);
-    return response.data;
-  },
+  deleteVariation: async (
+  productId: number,
+  variationId: number
+): Promise<ApiResponse<null>> => {
+
+  console.log("DELETE DEBUG", {
+    productId,
+    variationId,
+    url: productVariationUrl(productId, variationId),
+  });
+
+  const response = await API.delete(
+    productVariationUrl(productId, variationId)
+  );
+
+  return response.data;
+},
 };

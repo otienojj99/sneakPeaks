@@ -30,6 +30,7 @@ import { generateSlug } from "../../../utils/helpers";
 import ProductVariantSection from "./ProductVariants";
 // import ProductImagesSection from "./ProductImagesSection";
 import { useProducts1 } from "../../../hooks/products/useProduct";
+import { useProductVariations } from "../../../hooks/products/useProductVariations";
 
 // ─── Validation Schema ───────────────────────────────────────────
 
@@ -190,8 +191,24 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
   brands,
   warehouses,
 }) => {
+  const {
+    variations,
+    fetchVariations,
+    deleteVariation,
+    updateVariation,
+    addVariation,
+  } = useProductVariations();
   const isEditing = !!product;
   const { createProduct, updateProduct, isLoading } = useProducts1();
+
+  // using isLoading from useProducts1 to disable submit button while saving
+
+  useEffect(() => {
+    isLoading;
+    if (product?.id) {
+      fetchVariations(product.id);
+    }
+  }, [product?.id]);
 
   const [autoSlug, setAutoSlug] = useState(true);
   const [activeSection, setActiveSection] = useState<
@@ -278,10 +295,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
 
   const isSectionAccessible = (sectionId: string) => {
     if (sectionId === "basic") return true;
-    // Images section only accessible if we're editing an existing product
-    // if (sectionId === "images") return isEditing;
-    // if (sectionId === "basic") return true;
-    // All other sections require basic info to be completed
+
     return completedSections.has("basic");
   };
 
@@ -1301,10 +1315,8 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                 </h3>
                 <ProductVariantSection
                   productId={product?.id}
-                  variations={formik.values.variations || []}
-                  onVariationsChange={(v) =>
-                    formik.setFieldValue("variations", v)
-                  }
+                  variations={variations}
+                  onVariationsChange={() => {}}
                   sellingPrice={formik.values.selling_price}
                 />
               </div>
@@ -1405,7 +1417,6 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
         </form>
 
         {/* ===== FOOTER ===== */}
-        {/* ===== FOOTER ===== */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50/50">
           {/* Left side: Back button (only if not on basic) */}
           <div>
@@ -1433,18 +1444,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
             {activeSection === "images" ? (
               <button
                 type="submit"
-                onClick={() =>
-                  // console.log("Create button clicked", {
-                  //   activeSection,
-                  //   isBasicValid,
-                  //   isSubmitting: formik.isSubmitting,
-                  //   "Formik errors": formik.errors,
-                  //   "Formik values": formik.values,
-                  //   "Formik isSubmitting": formik.isSubmitting,
-                  // })
-
-                  formik.handleSubmit()
-                }
+                onClick={() => formik.handleSubmit()}
                 disabled={!isBasicValid || formik.isSubmitting}
                 className="px-6 py-2.5 text-sm font-semibold text-white bg-emerald-500 rounded-xl hover:bg-emerald-600 transition-all disabled:opacity-50 flex items-center gap-2"
               >

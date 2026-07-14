@@ -166,10 +166,24 @@ const ProductVariationsSection: React.FC<ProductVariationsSectionProps> = ({
     if (deleteIndex === null || !productId) return;
 
     const variationToDelete = localVariations[deleteIndex];
-    setIsDeleting(true);
+
+    if (variationToDelete.id == null) {
+      const updated = localVariations.filter((_, idx) => idx !== deleteIndex);
+      setLocalVariations(updated);
+      onVariationsChange(updated);
+      setDeleteIndex(null);
+      toast.success(`Unsaved variation "${variationToDelete.sku}" removed.`);
+      return;
+    }
+
+    // setIsDeleting(true);
 
     try {
-      await deleteVariation(productId, variationToDelete.id!);
+      await deleteVariation(productId, variationToDelete.id);
+      console.log({
+        productId,
+        variationId: variationToDelete.id,
+      });
       await fetchVariations(productId);
       setDeleteIndex(null);
       toast.success(

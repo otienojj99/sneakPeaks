@@ -19,9 +19,19 @@ export default {
           800: '#075985',
           900: '#0c4a6e',
         },
+        secondary: {
+          bone: "#F5F3EE",
+          ink: "#14151A",
+          concrete: "#8B8681",
+          volt: "#CFFF04",
+          blaze: "#FF4526",
+          line: "#E4E0D8",
+        }
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
+        display: ["Anton", "sans-serif"],
+        body: ["Inter", "sans-serif"],
+        mono: ["JetBrains Mono", "monospace"],
       },
       animation: {
         fadeIn: 'fadeIn 0.2s ease-in-out',

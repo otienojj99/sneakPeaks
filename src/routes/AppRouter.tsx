@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import ProtectedRoute from "./ProtectedRoute";
 import DashboardLayout from "../components/dashboard/layout/DashboardLayout";
+import Home from "../pages/app/Landing/Home";
 
 // Auth
 import Login from "../pages/auth/Login";
@@ -58,6 +59,8 @@ const AppRouter = () => {
         <Route path="inventory_operations" element={<InventoryCounts />} />
         <Route path=":id" element={<InventoryCountDetail />} />
       </Route>
+
+      <Route path="/" element={<Home />} />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/dashboard" />} />
