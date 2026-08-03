@@ -1,3 +1,5 @@
+import type{ProductFilters} from "./product.types"
+
 // ========== CATEGORY ==========
 export interface Category {
   id: number
@@ -53,8 +55,37 @@ export interface CategoryFilters {
   include?: string // e.g., 'children,parent,products_count'
 }
 
+export interface ColorOption {
+  id: string;
+  label: string;
+  /** CSS color for the swatch */
+  hex: string;
+  available?: boolean;
+}
+
 // ========== TREE (nested structure) ==========
 export interface CategoryTree extends Category {
   children: CategoryTree[]
   depth: number
+}
+
+export interface SizeOption {
+  id: string;
+  label: string;
+  available?: boolean;
+}
+
+/**
+ * SidebarFilterChange
+ * The full shape SidebarFilters can emit. `category_id`/`price_min`/
+ * `price_max` map 1:1 to your existing `ProductFilters`; `color`/`size`
+ * are additive (not yet part of your backend `ProductFilters` type) since
+ * the brief asks the sidebar to be "capable of emitting" them without
+ * assuming how your product grid/API consumes them yet. Spread the
+ * relevant subset into your real `ProductFilters` object where you handle
+ * this callback.
+ */
+export interface SidebarFilterChange extends ProductFilters {
+  color?: string;
+  size?: string;
 }

@@ -3,6 +3,7 @@ import { useAuth } from "../hooks/useAuth";
 import ProtectedRoute from "./ProtectedRoute";
 import DashboardLayout from "../components/dashboard/layout/DashboardLayout";
 import Home from "../pages/app/Landing/Home";
+import Shop from "../pages/app/Shop/Shop";
 
 // Auth
 import Login from "../pages/auth/Login";
@@ -61,6 +62,7 @@ const AppRouter = () => {
       </Route>
 
       <Route path="/" element={<Home />} />
+      <Route path="/Shop" element={<Shop />} />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/dashboard" />} />

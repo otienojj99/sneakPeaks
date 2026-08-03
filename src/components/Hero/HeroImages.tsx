@@ -26,26 +26,11 @@ const HeroImages = ({ slide, badges }: Props) => {
         animate={{ opacity: 1, x: 0, rotate: -4 }}
         transition={{ duration: 0.9, delay: 1.4, ease: [0.22, 1, 0.36, 1] }}
       >
-        <svg viewBox="0 0 200 260" className="w-full h-auto">
-          <rect width="200" height="260" fill="#1F2026" />
-          <rect width="200" height="260" fill="url(#lg)" opacity="0.6" />
-          <defs>
-            <linearGradient id="lg" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#CFFF04" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="#14151A" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          {/* abstract walking silhouette, fully non-identifiable */}
-          <circle cx="100" cy="80" r="18" fill="#F5F3EE" opacity="0.85" />
-          <path
-            d="M100 98 L100 165 M100 120 L70 145 M100 120 L138 110 M100 165 L78 220 M100 165 L128 215"
-            stroke="#F5F3EE"
-            strokeWidth="10"
-            strokeLinecap="round"
-            opacity="0.85"
-            fill="none"
-          />
-        </svg>
+        <img
+          src="/assets/lifestyle/heromock.png"
+          alt="Lifestyle Banner"
+          className="w-full h-auto object-cover rounded-lg"
+        />
         <div className="p-3">
           <p className="text-[11px] text-[#F5F3EE]/80">Street-ready styling</p>
         </div>
@@ -81,40 +66,13 @@ const HeroImages = ({ slide, badges }: Props) => {
             animate={{ y: [0, -14, 0] }}
             transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
           >
-            <svg
-              viewBox="0 0 420 260"
-              className="w-72 sm:w-[420px] h-auto drop-shadow-[0_30px_40px_rgba(0,0,0,0.5)]"
-            >
-              <path
-                d="M40 190 C 40 150, 70 140, 110 138 C 150 136, 170 110, 220 100
-                   C 270 90, 300 95, 330 115 C 360 135, 380 150, 380 175
-                   L 380 195 C 380 205, 372 210, 360 210
-                   L 60 210 C 48 210, 40 202, 40 190 Z"
-                fill="#F5F3EE"
+            <div className="relative">
+              <img
+                src="/images/adidas-hero.png"
+                alt="Premium Adidas Sneaker"
+                className="w-72 sm:w-[420px] h-auto object-contain drop-shadow-[0_30px_40px_rgba(0,0,0,0.45)]"
               />
-              <path
-                d="M110 138 C 150 136, 170 110, 220 100 C 250 94, 272 95, 292 102"
-                stroke="#CFFF04"
-                strokeWidth="7"
-                fill="none"
-                strokeLinecap="round"
-              />
-              <rect
-                x="60"
-                y="196"
-                width="300"
-                height="14"
-                rx="7"
-                fill="#CFFF04"
-              />
-              <path
-                d="M330 115 C 350 128, 365 140, 372 155"
-                stroke="#14151A"
-                strokeWidth="3"
-                fill="none"
-                opacity="0.3"
-              />
-            </svg>
+            </div>
           </motion.div>
         </motion.div>
       </AnimatePresence>

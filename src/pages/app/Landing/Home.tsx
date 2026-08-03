@@ -11,6 +11,7 @@ import DealsSection from "../../../components/Deals/DealsSection";
 import BoutiqueExperienceSection from "../../../components/BoutiqueExperience/BoutiqueExperienceSection";
 import CommunityGallerySection from "../../../components/CommunityGallery/CommunityGallerySection";
 import MembershipSection from "../../../components/Membership/MembershipSection";
+import Footer from "../../../components/Footer/Footer";
 
 const Home = () => {
   return (
@@ -28,6 +29,7 @@ const Home = () => {
       <BoutiqueExperienceSection />
       <CommunityGallerySection />
       <MembershipSection />
+      <Footer />
 
       {/* Rest of the page */}
     </>

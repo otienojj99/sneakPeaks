@@ -235,6 +235,7 @@ export interface Product {
   // Dynamic
   attributes: ProductAttributes;
   variations: ProductVariation[];
+  rating: string;
 
   // Timestamps
   created_at: string;
