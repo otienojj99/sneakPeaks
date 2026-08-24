@@ -12,7 +12,7 @@ const ProductImage = ({ product, hovered }: Props) => {
   const secondary = product.gallery_images?.find((src) => src !== primary);
 
   return (
-    <div className="relative w-full aspect-square overflow-hidden rounded-t-[28px] bg-[#F5F3EE]">
+    <div className="relative w-full aspect-[4/5] overflow-hidden rounded-t-[28px] bg-[#F5F3EE]">
       {primary && (
         <motion.img
           src={primary.medium_url ?? primary.image_url}

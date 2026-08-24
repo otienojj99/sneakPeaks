@@ -4,7 +4,7 @@ import Logo from "../../Header/Logo";
 import Navigation from "./Navigation";
 import SearchBar from "./SearchBar";
 import WishlistButton from "./WishlistButton";
-import CartButton from "./CartButton";
+import CartButton from "../Shop/CartDtower/CartButton";
 import AccountMenu from "./AccountMenu";
 import MobileMenu from "./MobileMenu";
 
@@ -54,13 +54,14 @@ const ShopHeader = ({
         <div className="hidden lg:flex flex-1 items-center justify-end gap-3">
           <SearchBar />
           <WishlistButton count={wishlistCount} />
-          <CartButton count={cartCount} />
+          {/* <CartButton count={cartCount} /> */}
+          <CartButton />
           <AccountMenu isLoggedIn={isLoggedIn} />
         </div>
 
         <div className="flex lg:hidden items-center gap-1">
           <WishlistButton count={wishlistCount} />
-          <CartButton count={cartCount} />
+          <CartButton />
           <AccountMenu isLoggedIn={isLoggedIn} />
           <MobileMenu />
         </div>

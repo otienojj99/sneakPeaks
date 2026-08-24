@@ -17,6 +17,7 @@ import {
   FiSave,
 } from "react-icons/fi";
 import { useFormik } from "formik";
+import type { Audience } from "../../../constants/audience";
 import * as Yup from "yup";
 import { useProducts } from "../../../hooks/products/useProducts";
 import toast from "react-hot-toast";
@@ -74,6 +75,9 @@ const productSchema = Yup.object().shape({
   meta_title: Yup.string().max(60),
   meta_description: Yup.string().max(160),
   meta_keywords: Yup.string().max(500),
+  audience: Yup.array()
+    .of(Yup.string().oneOf(["men", "women", "kids", "unisex"]))
+    .nullable(),
   attributes: Yup.object().nullable(),
   variations: Yup.array().nullable(),
 });
@@ -133,6 +137,7 @@ const productToFormValues = (product?: Product | null): ProductFormData => {
       meta_description: "",
       meta_keywords: "",
       attributes: {},
+      audience: [], // 👈 NEW
       variations: [],
     };
   }
@@ -176,6 +181,7 @@ const productToFormValues = (product?: Product | null): ProductFormData => {
     meta_description: product.meta_description ?? "",
     meta_keywords: product.meta_keywords ?? "",
     attributes: { ...product.attributes },
+    audience: product.audience ?? [],
     variations: [...product.variations],
   };
 };
@@ -866,6 +872,46 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                       Select the brand for this product.
                     </p>
                   </div>
+                </div>
+                {/* target audience  */}
+                <div className="mt-6">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Target Audience
+                  </label>
+
+                  <div className="flex flex-wrap gap-4">
+                    {AUDIENCE_OPTIONS.map(({ value, label }) => {
+                      const isChecked = (formik.values.audience || []).includes(
+                        value,
+                      );
+                      return (
+                        <label
+                          key={value}
+                          className="inline-flex items-center gap-2 cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            value={value}
+                            checked={isChecked}
+                            onChange={(e) => {
+                              const checked = e.target.checked;
+                              const current = formik.values.audience || [];
+                              const next = checked
+                                ? [...current, value]
+                                : current.filter((v) => v !== value);
+                              formik.setFieldValue("audience", next);
+                            }}
+                            className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                          />
+                          <span className="text-sm text-gray-700">{label}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1.5">
+                    Select who this product is for (e.g., Men, Women, Kids,
+                    Unisex).
+                  </p>
                 </div>
               </div>
             )}

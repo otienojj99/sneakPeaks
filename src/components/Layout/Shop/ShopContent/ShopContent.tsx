@@ -3,13 +3,37 @@ import { motion } from "framer-motion";
 import ProductSection from "./ProductSection";
 import type { GridColumns } from "../../ProductToolbar/GridSwitcher";
 import ShopContents from "./CategoryContent/ShopContents";
+import Pagination from "../paginatio/Pagination";
+import type { Product } from "../../../../types/product.types";
+import DiscountShowcase from "../Products/DiscountDisplayGrid/DiscountShowcase";
 
 type ShopContentProps = {
   products: React.ComponentProps<typeof ProductSection>["products"];
   columns: GridColumns;
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
+  totalItems: number;
+  loading: boolean;
+  onPageChange: (page: number) => void;
+  // onAddToCart: (product: Product) => void;
+  // onQuickView: (product: Product) => void;
+  // basePath?: string;
 };
 
-const ShopContent = ({ products, columns }: ShopContentProps) => {
+const ShopContent = ({
+  products,
+  columns,
+  currentPage,
+  totalPages,
+  pageSize,
+  totalItems,
+  loading,
+  onPageChange,
+  // onAddToCart,
+  // onQuickView,
+  // basePath = "/shop",
+}: ShopContentProps) => {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   return (
@@ -39,6 +63,22 @@ const ShopContent = ({ products, columns }: ShopContentProps) => {
           onOpenMobileSidebar={() => setMobileSidebarOpen(true)}
         />
       </div>
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        totalItems={totalItems}
+        isLoading={loading}
+        onPageChange={onPageChange}
+        label="Product"
+      />
+
+      {/* <DiscountShowcase
+        products={products}
+        onAddToCart={(product) => console.log("Add to cart:", product)}
+        onQuickView={(product) => console.log("Quick view:", product)}
+        basePath="/shop"
+      /> */}
     </motion.div>
   );
 };

@@ -234,6 +234,8 @@ export interface Product {
 
   // Dynamic
   attributes: ProductAttributes;
+  audience: string[];            // e.g. ['men', 'women']
+  audience_labels: string[];     // e.g. ['Men', 'Women']
   variations: ProductVariation[];
   rating: string;
 
@@ -291,6 +293,7 @@ export interface ProductFormData {
   meta_keywords?: string;
 
   attributes: ProductAttributes;
+   audience?: string[];
   variations: ProductVariation[];
 }
 export interface ProductUpdateFormData {
@@ -339,6 +342,7 @@ export interface ProductUpdateFormData {
   meta_keywords?: string;
 
   attributes: ProductAttributes;
+   audience?: string[];
   variations: ProductVariation[];
 }
 

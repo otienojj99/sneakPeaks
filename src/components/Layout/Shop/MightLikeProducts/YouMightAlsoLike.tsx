@@ -19,7 +19,7 @@ const YouMightAlsoLike = ({
   if (products.length === 0) return null;
 
   return (
-    <section className="w-full bg-[#F5F3EE] py-2 sm:py-20">
+    <section className="w-full bg-[#F5F3EE] py-2 sm:py-20 flex-auto justify-center">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}

@@ -32,7 +32,7 @@ const RelatedProductCard = ({
       onMouseLeave={() => setHovered(false)}
       onFocus={() => setHovered(true)}
       onBlur={() => setHovered(false)}
-      className="shrink-0 snap-center w-[200px] sm:w-[200px] flex flex-col rounded-2xl overflow-hidden bg-[#F5F3EE] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#14151A] focus-visible:ring-offset-2"
+      className="shrink-0 snap-center w-[240px] sm:w-[270px] md:w-[300px] flex flex-col rounded-2xl overflow-hidden bg-[#F5F3EE] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#14151A] focus-visible:ring-offset-2"
       animate={{
         y: hovered ? -4 : 0,
         boxShadow: hovered
@@ -52,24 +52,24 @@ const RelatedProductCard = ({
           }}
           whileHover={{ scale: 1.1 }}
           transition={{ duration: 0.2 }}
-          className="absolute bottom-2.5 right-2.5 w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#14151A]"
+          className="absolute bottom-3 right-3 w-9 h-9 rounded-full bg-white shadow-sm flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#14151A]"
         >
           {added ? (
-            <Check size={14} className="text-[#14151A]" />
+            <Check size={15} className="text-[#14151A]" />
           ) : (
-            <Plus size={14} className="text-[#14151A]" />
+            <Plus size={15} className="text-[#14151A]" />
           )}
         </motion.button>
       </div>
 
-      <div className="p-3">
-        <p className="text-[11px] text-[#8B8681] truncate">
+      <div className="p-4">
+        <p className="text-[12px] text-[#8B8681] truncate">
           {product.brand?.name}
         </p>
-        <h3 className="text-xs font-semibold text-[#14151A] truncate mt-0.5">
+        <h3 className="text-sm font-semibold text-[#14151A] truncate mt-0.5">
           {product.name}
         </h3>
-        <p className="text-sm font-bold text-[#14151A] mt-1">
+        <p className="text-base font-bold text-[#14151A] mt-1">
           ${product.selling_price}
         </p>
       </div>

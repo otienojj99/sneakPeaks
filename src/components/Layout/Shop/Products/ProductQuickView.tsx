@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 // import type { Product } from "./types";
 import type { Product } from "../../../../types/product.types";
-import type { ProductImage } from "../../../../types/product.types";
 
 interface Props {
   product: Product | null;
@@ -32,16 +31,24 @@ const ProductQuickView = ({
   onAddToCart,
   basePath = "/shop",
 }: Props) => {
-  const [activeImage, setActiveImage] = useState(0);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [color, setColor] = useState<string | undefined>(undefined);
   const [size, setSize] = useState<string | undefined>(undefined);
   const [quantity, setQuantity] = useState(1);
 
   if (!product) return null;
 
-  const images = [product.featured_image, ...product.gallery_images].filter(
-    (img): img is ProductImage => img !== null,
-  );
+  // const images = [product.featured_image, ...product.gallery_images].filter(
+  //   (img): img is ProductImage => img !== null,
+  // );
+  const images = [
+    ...(product.featured_image ? [product.featured_image] : []),
+    ...(product.gallery_images ?? []).filter(
+      (image) => image.id !== product.featured_image?.id,
+    ),
+  ];
+
+  const activeImage = images[activeImageIndex];
   const whatsappMessage = encodeURIComponent(
     `Hi! I'd like to order: ${product.brand} ${product.name} (${product.selling_price}) — ${window.location.origin}${basePath}/${product.slug}`,
   );
@@ -82,27 +89,42 @@ const ProductQuickView = ({
             {/* Gallery */}
             <div className="flex flex-col gap-3">
               <div className="w-full aspect-square rounded-2xl overflow-hidden bg-white">
-                <img
-                  src={images[activeImage].image_url}
-                  alt={`${product.brand} ${product.name}`}
-                  className="w-full h-full object-cover"
-                />
+                {activeImage ? (
+                  <img
+                    src={
+                      activeImage.large_url ??
+                      activeImage.medium_url ??
+                      activeImage.image_url
+                    }
+                    alt={`${product.brand?.name ?? ""} ${product.name}`}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-[#8B8681]">
+                    No image available
+                  </div>
+                )}
               </div>
+
               {images.length > 1 && (
-                <div className="flex gap-2">
-                  {images.map((src, i) => (
+                <div className="flex gap-2 overflow-x-auto">
+                  {images.map((image, i) => (
                     <button
-                      key={i}
-                      onClick={() => setActiveImage(i)}
+                      key={image.id}
+                      onClick={() => setActiveImageIndex(i)}
                       aria-label={`View image ${i + 1}`}
-                      className="w-14 h-14 rounded-lg overflow-hidden border-2 transition-colors"
+                      className="w-14 h-14 shrink-0 rounded-lg overflow-hidden border-2 transition-colors"
                       style={{
                         borderColor:
-                          i === activeImage ? "#CFFF04" : "transparent",
+                          i === activeImageIndex ? "#CFFF04" : "transparent",
                       }}
                     >
                       <img
-                        src={src.image_url}
+                        src={
+                          image.thumbnail_url ??
+                          image.medium_url ??
+                          image.image_url
+                        }
                         alt=""
                         className="w-full h-full object-cover"
                       />

@@ -10,9 +10,14 @@ import ProductInfo from "./ProductInfo";
 interface Props {
   product: Product;
   index: number;
-  onAddToCart: (product: Product) => void;
+  onAddToCart: (
+    product: Product,
+    quantity?: number,
+    variationId?: number,
+    size?: string,
+    color?: string,
+  ) => void;
   onQuickView: (product: Product) => void;
-  /** Base path for full product pages, e.g. "/shop" -> "/shop/:slug" */
   basePath?: string;
 }
 

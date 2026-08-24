@@ -3,10 +3,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Heart, ShoppingBag, Eye, Check } from "lucide-react";
 import type { Product } from "../../../../types/product.types";
 
+
 interface Props {
   product: Product;
   hovered: boolean;
-  onAddToCart: (product: Product) => void;
+  onAddToCart: (
+    product: Product,
+    quantity?: number,
+    variationId?: number,
+    size?: string,
+    color?: string,
+  ) => void;
   onQuickView: (product: Product) => void;
 }
 
@@ -22,6 +29,8 @@ const ProductActions = ({
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    console.log("🛒 ProductActions - Add to cart:", product);
     onAddToCart(product);
     setJustAdded(true);
     setTimeout(() => setJustAdded(false), 1400);

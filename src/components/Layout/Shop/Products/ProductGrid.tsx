@@ -3,6 +3,7 @@ import { LayoutGroup } from "framer-motion";
 import type { Product } from "../../../../types/product.types";
 import ProductCard from "./ProductCard";
 import ProductQuickView from "./ProductQuickView";
+import { useCartStore } from "../../Shop/store/cart/cartStore";
 
 interface Props {
   products: Product[];
@@ -37,14 +38,16 @@ const ProductGrid = ({
   console.log("🟡 Products:", products);
   console.log("🟡 Products count:", products?.length);
 
-  const handleAddToCart = (
-    product: Product,
-    quantity = 1,
-    color?: string,
-    size?: string,
-  ) => {
-    onAddToCart?.(product, quantity, color, size);
-  };
+  // const handleAddToCart = (
+  //   product: Product,
+  //   quantity = 1,
+  //   color?: string,
+  //   size?: string,
+  // ) => {
+  //   onAddToCart?.(product, quantity, color, size);
+  // };
+
+  const addItem = useCartStore((state) => state.addItem);
 
   return (
     <LayoutGroup>
@@ -57,7 +60,7 @@ const ProductGrid = ({
             product={product}
             index={i}
             basePath={basePath}
-            onAddToCart={handleAddToCart}
+            onAddToCart={(product) => addItem(product, 1)}
             onQuickView={setQuickViewProduct}
           />
         ))}
@@ -67,7 +70,7 @@ const ProductGrid = ({
         product={quickViewProduct}
         onClose={() => setQuickViewProduct(null)}
         onAddToCart={(p, qty, color, size) => {
-          handleAddToCart(p, qty, color, size);
+          addItem(p, qty, color, size);
           setQuickViewProduct(null);
         }}
         basePath={basePath}
