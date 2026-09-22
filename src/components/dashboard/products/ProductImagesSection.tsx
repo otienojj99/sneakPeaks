@@ -4,6 +4,7 @@ import type { ProductImage } from "../../../types/product.types";
 import ImageUpload from "../../common/ImageUpload";
 import ConfirmDialog from "../../common/ConfirmDialog";
 import Button from "../../common/Button";
+import { getImageUrl } from "../../../utils/helpers";
 
 interface ProductImagesSectionProps {
   productId: number;
@@ -160,7 +161,7 @@ const ProductImagesSection: React.FC<ProductImagesSectionProps> = ({
               Array.isArray(images)
                 ? images.map((img) => ({
                     id: img.id,
-                    url: img.thumbnail_url || img.image_url,
+                    url: getImageUrl(img) || "",
                     is_primary: img.is_primary,
                   }))
                 : []
@@ -205,13 +206,13 @@ const ProductImagesSection: React.FC<ProductImagesSectionProps> = ({
                   <tr key={img.id} className="hover:bg-gray-50">
                     <td className="px-4 py-2">
                       <img
-                        src={img.thumbnail_url || img.image_url}
+                        src={getImageUrl(img)}
                         alt={img.alt_text ?? ""}
                         className="h-10 w-10 rounded object-cover"
                       />
                     </td>
                     <td className="px-4 py-2 text-gray-600 truncate max-w-xs">
-                      {img.thumbnail_url || img.image_url}
+                      {getImageUrl(img)}
                     </td>
                     <td className="px-4 py-2 text-center">
                       {img.is_primary ? (

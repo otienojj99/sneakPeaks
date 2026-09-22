@@ -67,4 +67,9 @@ export const ENDPOINTS = {
 
   // Dashboard
   DASHBOARD_STATS: '/dashboard/stats',
+
+  DISCOUNT: '/admin/discounts',
+  PUBLIC_DISCOUNT: '/promotions',
+
+  COLLECTIONS: '/collections',
 }

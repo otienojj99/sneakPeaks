@@ -13,10 +13,10 @@ export const getImageUrl = (image?: string | Record<string, any> | null): string
   if (typeof image === 'object' && image !== null) {
     return (
       image.url ??
-      image.image_url ??
       image.thumbnail_url ??
-      image.large_url ??
       image.medium_url ??
+      image.large_url ??
+      image.image_url ??
       undefined
     );
   }

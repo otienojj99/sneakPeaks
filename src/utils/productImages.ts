@@ -8,7 +8,11 @@ function getGalleryImageUrls(gallery: GalleryImages): string[] {
   }
 
   if (Array.isArray(gallery)) {
-    return gallery.map((img) => (typeof img === "string" ? img : img.image_url));
+    return gallery.map((img) =>
+      typeof img === "string"
+        ? img
+        : img.thumbnail_url ?? img.medium_url ?? img.large_url ?? img.image_url,
+    );
   }
 
   return [];
@@ -20,7 +24,11 @@ export function getAllProductImages(product: Product): { id: number; url: string
   if (product.featured_image) {
     images.push({
       id: 0,
-      url: product.featured_image.image_url,
+      url:
+        product.featured_image.thumbnail_url ??
+        product.featured_image.medium_url ??
+        product.featured_image.large_url ??
+        product.featured_image.image_url,
       is_primary: true,
     });
   }

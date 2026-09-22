@@ -29,6 +29,11 @@ const ShopTabs = ({ onChange }: Props) => {
     onChange?.(id);
   };
 
+  // log the products that are currently being rendered based on the active tab
+  useEffect(() => {
+    console.log("Active tab changed:", activeId);
+  }, [activeId]);
+
   return (
     <>
       <div ref={sentinelRef} aria-hidden="true" className="h-px" />

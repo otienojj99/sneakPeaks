@@ -166,6 +166,176 @@ export interface ProductImage {
   updated_at: string;
 }
 
+export type DiscountType =
+  | 'percentage'
+  | 'fixed_amount'
+  | 'buy_x_get_y'
+  | 'fixed_price'
+  | 'free_shipping';
+
+  /** Who the discount applies to */
+export type DiscountAppliesTo =
+  | 'all_products'
+  | 'specific_products'
+  | 'specific_categories';
+
+  export type DiscountStatus = 'draft' | 'active' | 'paused' | 'expired';
+
+export interface Discount {
+  id: number;
+  name: string;
+  code: string | null;
+  description: string | null;
+
+  // Core discount settings
+  type: DiscountType;
+  value: number;                    // e.g., 20 for 20%, or 1500 for fixed amount
+  formatted_value: string;          // e.g., "20%", "KES 1,500"
+  maximum_discount_amount: number | null;
+
+  // BOGO specific
+  buy_quantity: number | null;
+  get_quantity: number | null;
+  free_product_id: number | null;
+  free_product: Product | null;     // populated when loaded
+
+  // Eligibility
+  applies_to: DiscountAppliesTo;
+  eligible_product_ids: number[] | null;
+  eligible_category_ids: number[] | null;
+  excluded_product_ids: number[] | null;
+  excluded_category_ids: number[] | null;
+
+  // Minimum requirements
+  minimum_order_amount: number | null;
+  minimum_quantity: number | null;
+  maximum_quantity: number | null;
+
+  // Customer restrictions
+  customer_eligibility: 'all' | 'groups' | 'specific' | null;
+  eligible_customer_groups: string[] | null;
+  eligible_customer_ids: number[] | null;
+
+  // Usage limits
+  usage_limit_per_coupon: number | null;
+  usage_limit_per_customer: number | null;
+  total_used: number;
+
+  // Combining & priority
+  can_combine_with_other_discounts: boolean;
+  priority: number;
+
+  // Schedule
+  starts_at: string;                // ISO datetime
+  ends_at: string | null;           // ISO datetime
+  valid_days_of_week: number[] | null; // 0=Sunday ... 6=Saturday
+  valid_from_time: string | null;   // "08:00"
+  valid_to_time: string | null;     // "20:00"
+
+  // Status & visibility
+  is_active: boolean;
+  is_public: boolean;
+  status: DiscountStatus;
+
+  // Display
+  display_text: string | null;
+  banner_image: string | null;
+  show_on_product_page: boolean;
+  show_on_cart_page: boolean;
+  show_on_checkout: boolean;
+
+  // Special flags
+  first_purchase_only: boolean;
+  new_registration_only: boolean;
+
+  // Meta & audit
+  metadata: Record<string, any> | null;
+  notes: string | null;
+
+  // Timestamps
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
+export type DiscountFormData = Omit<
+  Discount,
+  | 'id'
+  | 'formatted_value'
+  | 'free_product'
+  | 'total_used'
+  | 'created_at'
+  | 'updated_at'
+  | 'deleted_at'
+> & {
+  // Fields that are optional in the form
+  free_product_id?: number | null;
+  eligible_product_ids?: number[] | null;
+  eligible_category_ids?: number[] | null;
+  excluded_product_ids?: number[] | null;
+  excluded_category_ids?: number[] | null;
+  eligible_customer_groups?: string[] | null;
+  eligible_customer_ids?: number[] | null;
+  valid_days_of_week?: number[] | null;
+  metadata?: Record<string, any> | null;
+};
+
+// ─── Cart calculation types ──────────────────────────────────────
+
+export interface CartItemForDiscount {
+  product_id: number;
+  quantity: number;
+  product?: Product;          // optionally pre-loaded
+  final_price?: number;       // after discounts
+  discount?: AppliedDiscount; // applied discount details
+  free_units?: number;        // for BOGO cross‑product
+}
+
+export interface AppliedDiscount {
+  discount_id: number;
+  type: DiscountType;
+  discount_amount: number;
+  final_price: number;
+}
+
+export interface CartDiscountResult {
+  total_discount: number;
+  item_breakdown: Record<number, AppliedDiscount>; // keyed by product_id
+  applied_discounts: number[];                      // discount IDs
+  cart_items: CartItemForDiscount[];
+}
+
+export interface DiscountFilters {
+  search?: string;
+  type?: DiscountType;
+  status?: DiscountStatus;
+  is_active?: boolean;
+  applies_to?: DiscountAppliesTo;
+  trashed?: 'only' | 'with';
+  per_page?: number;
+  page?: number;
+}
+
+// ─── Discount Create / Update payloads ──────────────────────────
+
+export type DiscountCreateData = Omit<
+  DiscountFormData,
+  'id' | 'total_used' | 'formatted_value' | 'free_product'
+>;
+
+export type DiscountUpdateData = Partial<DiscountCreateData>;
+
+export interface BannersResponse {
+  data: Discount[];
+}
+
+export interface ProductDiscountsResponse {
+  data: Discount[];
+}
+
+export interface CartCalculationResponse {
+  data: CartDiscountResult;
+}
 
 
 // ─── Product ──────────────────────────────────────────────────────
@@ -380,6 +550,7 @@ export interface ProductFilters {
   page?: number;
   per_page?: number;
   trashed?: 'only' | 'with' | null;
+  audience?: string[] | null;
 }
 
 // ─── Bulk action payloads ─────────────────────────────────────────

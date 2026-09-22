@@ -116,6 +116,31 @@ export const useCategory = (initialFilters?: CategoryFilters) =>{
     [fetchCategories]
   )
 
+  // Create Parent Category
+  const createParentCategory = useCallback(
+    async (data: CategoryCreateData): Promise<Category | null> => {
+      setIsLoading(true)
+      try {
+        const payload = {
+          ...data,
+          slug: generateSlug(data.name),
+          parent_id: null // Explicitly set as root category
+        }
+        const response = await categoryService.create(payload)
+        toast.success(response.message || 'Parent category created successfully')
+        await fetchCategories()
+        return response.data
+      } catch (err: any) {
+        const message = err.response?.data?.message || 'Failed to create parent category'
+        toast.error(message)
+        return null
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [fetchCategories]
+  )
+
    // ========== UPDATE ==========
   const updateCategory = useCallback(
     async (id: number, data: CategoryUpdateData): Promise<Category | null> => {
@@ -286,6 +311,7 @@ export const useCategory = (initialFilters?: CategoryFilters) =>{
     createCategory,
     updateCategory,
     deleteCategory,
+    createParentCategory,
 
     // Bulk
     bulkDeleteCategories,

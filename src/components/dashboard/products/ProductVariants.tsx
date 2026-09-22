@@ -49,7 +49,8 @@ const ProductVariationsSection: React.FC<ProductVariationsSectionProps> = ({
   const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isDeleting, setIsDeleting] = useState(false);
-  const { fetchVariations, deleteVariation } = useProductVariations();
+  const { fetchVariations, addVariation, updateVariation, deleteVariation } =
+    useProductVariations();
 
   useEffect(() => {
     if (productId) {
@@ -67,15 +68,15 @@ const ProductVariationsSection: React.FC<ProductVariationsSectionProps> = ({
     }
   }, [variations]);
 
-  useEffect(() => {
-    if (Array.isArray(variations)) {
-      setLocalVariations(variations);
-    }
-  }, [variations]);
+  // useEffect(() => {
+  //   if (Array.isArray(variations)) {
+  //     setLocalVariations(variations);
+  //   }
+  // }, [variations]);
 
-  if (!Array.isArray(variations)) {
-    console.error('VariantSwiper: "variants" prop is missing or not an array.');
-  }
+  // if (!Array.isArray(variations)) {
+  //   console.error('VariantSwiper: "variants" prop is missing or not an array.');
+  // }
 
   const openAdd = () =>
     setFormState({
@@ -138,24 +139,26 @@ const ProductVariationsSection: React.FC<ProductVariationsSectionProps> = ({
     }
     try {
       if (formState.editIndex !== null) {
-        const updated = [...localVariations];
-        updated[formState.editIndex] = {
-          ...updated[formState.editIndex],
-          ...formState.data,
-        };
-        setLocalVariations(updated);
-        onVariationsChange(updated);
+        // const updated = [...localVariations];
+        const current = localVariations[formState.editIndex];
+
+        if (current.id) {
+          await updateVariation(productId, current.id, formState.data);
+        } else {
+          const updated = [...localVariations];
+          updated[formState.editIndex] = { ...current, ...formState.data };
+          setLocalVariations(updated);
+          onVariationsChange(updated);
+        }
       } else {
-        const added = [
-          ...localVariations,
-          {
-            ...formState.data,
-            product_item_id: productId ?? formState.data.product_item_id,
-          },
-        ];
-        setLocalVariations(added);
-        onVariationsChange(added);
+        await addVariation(productId, formState.data);
       }
+
+      // 🔁 Refetch so localVariations matches the backend
+
+      await fetchVariations(productId);
+      onVariationsChange?.([]); // signal parent (optional)
+
       closeForm();
     } catch (error) {
       console.error("Error saving variation:", error);

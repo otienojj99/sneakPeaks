@@ -32,6 +32,7 @@ import ProductVariantSection from "./ProductVariants";
 // import ProductImagesSection from "./ProductImagesSection";
 import { useProducts1 } from "../../../hooks/products/useProduct";
 import { useProductVariations } from "../../../hooks/products/useProductVariations";
+import { AUDIENCE_OPTIONS } from "../../../constants/audience";
 
 // ─── Validation Schema ───────────────────────────────────────────
 
@@ -687,9 +688,6 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                             {formik.values.category_id
                               ? categories.find(
                                   (c) => c.id === formik.values.category_id,
-                                )?.full_path ||
-                                categories.find(
-                                  (c) => c.id === formik.values.category_id,
                                 )?.name
                               : "Select a category"}
                           </span>
@@ -759,9 +757,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                                       : "text-gray-400"
                                   }
                                 />
-                                <span className="truncate">
-                                  {cat.full_path || cat.name}
-                                </span>
+                                <span className="truncate">{cat.name}</span>
                               </button>
                             ))}
 

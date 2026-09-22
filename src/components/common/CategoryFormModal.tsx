@@ -1,5 +1,5 @@
 // src/pages/categories/components/CategoryFormModal.tsx
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import {
   FiX,
   FiUploadCloud,
@@ -8,6 +8,7 @@ import {
   FiChevronDown,
   FiFolder,
   FiAlertCircle,
+  FiPlus,
 } from "react-icons/fi";
 import type {
   Category,
@@ -16,6 +17,8 @@ import type {
 } from "../../types/category.types";
 import { useCategory } from "../../hooks/useCategories";
 import toast from "react-hot-toast";
+import { categories } from "../CategoriesSection/categoryData";
+import { generateSlug } from "../../utils/helpers";
 
 interface CategoryFormModalProps {
   isOpen: boolean;
@@ -31,6 +34,20 @@ interface FormErrors {
   parent_id?: string;
 }
 
+// ─── Descendant collector (to prevent cycles) ─────────────────
+
+const collectDescendantIds = (category: Category): Set<number> => {
+  const ids = new Set<number>();
+  const walk = (cat: Category) => {
+    cat.children?.forEach((child) => {
+      ids.add(child.id);
+      walk(child);
+    });
+  };
+  walk(category);
+  return ids;
+};
+
 const CategoryFormModal = ({
   isOpen,
   onClose,
@@ -38,8 +55,25 @@ const CategoryFormModal = ({
   category,
 }: CategoryFormModalProps) => {
   const isEditing = !!category;
-  const { categories: parentCategories, isLoading: parentsLoading } =
-    useCategory();
+
+  const {
+    categories,
+    isLoading: parentsLoading,
+    createParentCategory,
+    fetchCategories,
+  } = useCategory({
+    per_page: 500,
+    is_active: true,
+  });
+
+  const parentCategories: Category[] = useMemo(() => {
+    if (Array.isArray(categories)) return categories;
+    // @ts-expect-error – handle paginated response gracefully
+    return categories?.data ?? [];
+  }, [categories]);
+
+  // const { categories: parentCategories, isLoading: parentsLoading } =
+  //   useCategory();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form state
@@ -51,6 +85,10 @@ const CategoryFormModal = ({
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [removeImage, setRemoveImage] = useState(false);
+
+  const [showInlineCreate, setShowInlineCreate] = useState(false);
+  const [newParentName, setNewParentName] = useState("");
+  const [isCreatingParent, setIsCreatingParent] = useState(false);
 
   // UI state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -88,21 +126,22 @@ const CategoryFormModal = ({
   };
 
   // Filter parent categories (exclude self and children when editing)
-  const filteredParents = Array.isArray(parentCategories)
-    ? parentCategories.filter((cat) => {
-        if (isEditing && cat.id === category?.id) return false;
+  const blockedParentIds = useMemo(() => {
+    if (!isEditing || !category) return new Set<number>();
+    const ids = collectDescendantIds(category);
+    ids.add(category.id); // exclude self
+    return ids;
+  }, [isEditing, category]);
 
-        if (parentSearch) {
-          return (
-            cat.name.toLowerCase().includes(parentSearch.toLowerCase()) ||
-            cat.full_path?.toLowerCase().includes(parentSearch.toLowerCase())
-          );
-        }
-
-        return true;
-      })
-    : [];
-
+  const filteredParents = useMemo(() => {
+    const query = parentSearch.trim().toLowerCase();
+    return parentCategories.filter((cat) => {
+      if (blockedParentIds.has(cat.id)) return false;
+      if (!query) return true;
+      const label = (cat.full_path || cat.name).toLowerCase();
+      return label.includes(query);
+    });
+  }, [parentCategories, parentSearch, blockedParentIds]);
   // Image handling
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -135,6 +174,43 @@ const CategoryFormModal = ({
     setImagePreview(null);
     setRemoveImage(true);
     if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleCreateParent = async () => {
+    const trimmedName = newParentName.trim();
+    if (!trimmedName) return;
+    setIsCreatingParent(true);
+
+    try {
+      // use the createParentCategory function from useCategories hook
+      const newParent: Category | null = await createParentCategory({
+        name: trimmedName,
+        slug: generateSlug(trimmedName),
+        parent_id: null,
+        is_active: true,
+        sort_order: 0,
+      });
+
+      if (!newParent) {
+        toast.error("Failed to create parent category");
+        return;
+      }
+
+      setParentId(newParent.id);
+
+      await fetchCategories?.(); // Refresh the list of categories
+
+      setShowInlineCreate(false);
+      setNewParentName("");
+      setShowParentDropdown(false);
+      toast.success(`"${newParent.name}" created`);
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message || "Failed to create parent category";
+      toast.error(msg);
+    } finally {
+      setIsCreatingParent(false);
+    }
   };
 
   // Validation
@@ -480,6 +556,61 @@ const CategoryFormModal = ({
                         }`}
                       >
                         <FiFolder size={14} className="text-gray-400" />
+                        {/* Create new parent option  */}
+                        {!showInlineCreate ? (
+                          <button
+                            type="button"
+                            onClick={() => setShowInlineCreate(true)}
+                            className="w-full text-left px-4 py-2.5 text-sm hover:bg-emerald-50 flex items-center gap-2 text-emerald-700 font-medium border-b border-gray-100"
+                          >
+                            <FiPlus size={14} />
+                            Create new parent category
+                          </button>
+                        ) : (
+                          <div className="p-3 border-b border-gray-100 bg-emerald-50/50">
+                            <p className="text-xs font-semibold text-emerald-800 mb-2">
+                              New parent category
+                            </p>
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                value={newParentName}
+                                onChange={(e) =>
+                                  setNewParentName(e.target.value)
+                                }
+                                placeholder="e.g. Casual"
+                                autoFocus
+                                className="flex-1 px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-1 focus:ring-emerald-500/30"
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    e.preventDefault();
+                                    handleCreateParent();
+                                  }
+                                }}
+                              />
+                              <button
+                                type="button"
+                                onClick={handleCreateParent}
+                                disabled={
+                                  !newParentName.trim() || isCreatingParent
+                                }
+                                className="px-3 py-2 text-xs font-semibold text-white bg-emerald-500 rounded-lg hover:bg-emerald-600 disabled:opacity-50"
+                              >
+                                {isCreatingParent ? "..." : "Create"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setShowInlineCreate(false);
+                                  setNewParentName("");
+                                }}
+                                className="px-2 py-2 text-xs text-gray-500 hover:text-gray-700"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        )}
                         None (Top Level)
                       </button>
 

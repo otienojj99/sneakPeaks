@@ -12,6 +12,7 @@ import Button from "../../common/Button";
 import Input from "../../common/Input";
 import Select from "../../common/Select";
 import Toggle from "../../common/Toggle";
+import { DiscountFormModal } from "../discounts";
 
 // ─── Props ──────────────────────────────────────────────────────
 
@@ -48,6 +49,8 @@ interface ProductListProps {
   // Lookups
   categories: { value: number; label: string }[];
   brands: { value: number; label: string }[];
+
+  onApplyDiscount: (productIds: number[]) => void;
 }
 
 // ─── Filter Bar (internal) ──────────────────────────────────────
@@ -205,7 +208,8 @@ const BulkActionBar: React.FC<{
   onAction: (action: BulkAction) => void;
   onClear: () => void;
   loading: boolean;
-}> = ({ count, onAction, onClear, loading }) => {
+  onApplyDiscount: () => void;
+}> = ({ count, onAction, onClear, loading, onApplyDiscount }) => {
   if (count === 0) return null;
 
   return (
@@ -254,6 +258,14 @@ const BulkActionBar: React.FC<{
         >
           Delete
         </Button>
+        <Button
+          variant="secondary"
+          size="xs"
+          disabled={loading}
+          onClick={onApplyDiscount}
+        >
+          🎯 Apply Discount
+        </Button>
         <Button variant="ghost" size="xs" onClick={onClear}>
           ✕
         </Button>
@@ -270,13 +282,20 @@ const RowActionsMenu: React.FC<{
   onEdit: (product: Product) => void;
   onDelete: (product: Product) => void;
   onToggle: (flag: ToggleableFlag) => void;
-}> = ({ product, onView, onEdit, onDelete, onToggle }) => {
+  onApplyDiscount: (productIds: Product["id"][]) => void;
+}> = ({ product, onView, onEdit, onDelete, onToggle, onApplyDiscount }) => {
   const [open, setOpen] = useState(false);
+
+  //  Testing: This should be the id of the same product
+  console.log("RowActionsMenu product id:", product.id);
 
   const handleAction = (action: () => void) => {
     action();
     setOpen(false);
+
+    console.log("RowActionsMenu product id:", product.id);
   };
+  console.log("RowActionsMenu product id:", product.id);
 
   return (
     <div className="relative">
@@ -321,6 +340,12 @@ const RowActionsMenu: React.FC<{
               onClick={() => handleAction(() => onToggle("is_new"))}
             >
               {product.is_new ? "🆕 Remove New" : "🆕 Mark New"}
+            </DropdownItem>
+            <hr className="my-1 border-gray-100" />
+            <DropdownItem
+              onClick={() => handleAction(() => onApplyDiscount([product.id]))}
+            >
+              Apply Discount
             </DropdownItem>
             <hr className="my-1 border-gray-100" />
             <DropdownItem
@@ -433,6 +458,7 @@ const ProductList: React.FC<ProductListProps> = ({
   bulkLoading,
   categories,
   brands,
+  onApplyDiscount,
 }) => {
   // Sort handler
   const handleSort = (field: string) => {
@@ -466,6 +492,7 @@ const ProductList: React.FC<ProductListProps> = ({
         onAction={onBulkAction}
         onClear={onClearSelection}
         loading={bulkLoading}
+        onApplyDiscount={() => onApplyDiscount(Array.from(selectedIds))}
       />
 
       {/* Loading */}
@@ -689,6 +716,7 @@ const ProductList: React.FC<ProductListProps> = ({
                         onEdit={() => onEdit(product)}
                         onDelete={() => onDelete(product)}
                         onToggle={(flag) => onToggleFlag(product, flag)}
+                        onApplyDiscount={onApplyDiscount}
                       />
                     </td>
                   </tr>

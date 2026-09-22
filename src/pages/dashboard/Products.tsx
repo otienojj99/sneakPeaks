@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { FiPlus } from "react-icons/fi";
 import ProductFormModal from "../../components/dashboard/products/ProductForm";
+import { DiscountFormModal } from "../../components/dashboard/discounts/DiscountFormModal";
 
 import { useProducts } from "../../hooks/products/useProducts";
 import { useProducts1 } from "../../hooks/products/useProduct";
@@ -74,6 +75,11 @@ const Products = () => {
   const { categories } = useCategory({ per_page: 100 });
   const { brands } = useBrand({ per_page: 100 });
   const { warehouse } = useWarehouse({ per_page: 100 });
+
+  // Add state in the parent component
+  const [showDiscountModal, setShowDiscountModal] = useState(false);
+  const [selectedProductIdsForDiscount, setSelectedProductIdsForDiscount] =
+    useState<number[]>([]);
 
   const handleSubmit = async (
     data: ProductFormData | ProductUpdateFormData,
@@ -160,6 +166,11 @@ const Products = () => {
   const handleEdit = (product: Product) => {
     setEditingProduct(product);
     setModalOpen(true);
+  };
+
+  const handleApplyDiscount = (productIds: number[]) => {
+    setSelectedProductIdsForDiscount(productIds);
+    setShowDiscountModal(true);
   };
 
   const handleDelete = (product: Product) => {
@@ -297,6 +308,7 @@ const Products = () => {
           label: cat.name,
         }))}
         brands={brands.map((brand) => ({ value: brand.id, label: brand.name }))}
+        onApplyDiscount={handleApplyDiscount}
       />
       <ProductFormModal
         isOpen={modalOpen}
@@ -310,6 +322,16 @@ const Products = () => {
         warehouses={warehouse}
         onSubmit={handleSubmit}
       />
+
+      <DiscountFormModal
+        isOpen={showDiscountModal}
+        onClose={() => {
+          setShowDiscountModal(false);
+          setSelectedProductIdsForDiscount([]);
+        }}
+        productIds={selectedProductIdsForDiscount}
+      />
+
       {/* Confirm Dialog */}
       <ConfirmDialog
         open={confirmState.open}
